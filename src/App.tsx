@@ -88,15 +88,15 @@ export default function App() {
   const [formSize, setFormSize] = useState<AppSize>('regular');
   const [formCategory, setFormCategory] = useState('Outros');
 
-  // Persistence to backend
-  useEffect(() => {
-    if (!isLoaded) return;
+  // Helper to update state and push to backend
+  const updateApps = (newApps: AppConfig[]) => {
+    setApps(newApps);
     fetch('/api/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(apps)
+      body: JSON.stringify(newApps)
     }).catch(e => console.error('Erro ao salvar config no servidor:', e));
-  }, [apps, isLoaded]);
+  };
 
   // Open modal in edit mode
   const handleOpenEditModal = (app: AppConfig) => {
@@ -128,7 +128,7 @@ export default function App() {
   const handleDeleteApp = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Tem certeza que deseja remover este aplicativo do portal?')) {
-      setApps(apps.filter(app => app.id !== id));
+      updateApps(apps.filter(app => app.id !== id));
       if (selectedAppForWorkspace?.id === id) {
         setSelectedAppForWorkspace(null);
       }
@@ -142,7 +142,7 @@ export default function App() {
 
     if (selectedAppForEdit) {
       // Editing existing app
-      setApps(apps.map(app => {
+      updateApps(apps.map(app => {
         if (app.id === selectedAppForEdit.id) {
           const updated = {
             ...app,
@@ -175,7 +175,7 @@ export default function App() {
         isDefault: false,
         category: formCategory
       };
-      setApps([...apps, newApp]);
+      updateApps([...apps, newApp]);
     }
 
     setIsEditModalOpen(false);
@@ -184,7 +184,7 @@ export default function App() {
   // Reset to original mockup apps
   const handleResetToDefaults = () => {
     if (confirm('Deseja restaurar as configurações originais do Portal? Isso substituirá as suas alterações atuais.')) {
-      setApps(DEFAULT_APPS);
+      updateApps(DEFAULT_APPS);
       setSelectedAppForWorkspace(null);
       setEditMode(false);
     }
