@@ -1,0 +1,6 @@
+{
+  "name": "Portal Labor Rural",
+  "description": "Hub centralizado para os aplicativos e recursos da Labor Rural, com gerenciamento dinâmico de links de direcionamento.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
