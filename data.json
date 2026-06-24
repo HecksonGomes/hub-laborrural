@@ -1,0 +1,57 @@
+[
+  {
+    "id": "app-1782309040942",
+    "title": "Planejamento de Safra e Calculadora de Adubação",
+    "description": "Este aplicativo é o Labor Rural (Ferramentas Agronômicas), uma plataforma web voltada para o setor agrícola.\n\nDe forma resumida, ele serve para auxiliar produtores e agrônomos na gestão e no planejamento de atividades rurais.",
+    "url": "https://agricultura-plan.vercel.app/",
+    "icon": "ClipboardList",
+    "color": "orange",
+    "size": "regular",
+    "isDefault": false,
+    "category": "Gestão"
+  },
+  {
+    "id": "app-1782309379218",
+    "title": "Estimador de Produtividade de Cacau",
+    "description": "O aplicativo é um Estimador de Produtividade de Cacau, um PWA (Progressive Web App) offline-first desenvolvido para a Labor Rural.\n\nSua principal função é ajudar produtores e engenheiros agrônomos a estimar a produtividade de lavouras de cacau (em kg/ha) de forma rápida e prática durante visitas a campo, mesmo em locais sem internet. Ele permite cadastrar fazendas, talhões, contar frutos por planta e calcula automaticamente a projeção de safra com base em índices de diferentes variedades de cacau. Quando o dispositivo recupera a conexão com a internet, os dados coletados são sincronizados automaticamente na nuvem.",
+    "url": "https://produtividade-cacau.vercel.app/",
+    "icon": "TrendingUp",
+    "color": "brown",
+    "size": "regular",
+    "isDefault": false,
+    "category": "Outros"
+  },
+  {
+    "id": "app-1782309790205",
+    "title": "Estimador de Produtividade de Café",
+    "description": "Estimador de Produtividade de Café, um PWA (Progressive Web App) focado no funcionamento offline-first desenvolvido para a Labor Rural.",
+    "url": "https://produtividade-cafe.vercel.app/",
+    "icon": "TrendingUp",
+    "color": "orange",
+    "size": "regular",
+    "isDefault": false,
+    "category": "Gestão"
+  },
+  {
+    "id": "app-1782309981246",
+    "title": "MIPD Cacau – Labor Rural 🌱🍫",
+    "description": "Aplicativo web desenvolvido para o monitoramento e tomada de decisão no Manejo Integrado de Pragas e Doenças (MIPD) na cultura do Cacau. A ferramenta coleta dados a campo e realiza cálculos imediatos baseados em Níveis de Ação (NA) estabelecidos em literatura, recomendando ao avaliador/consultor se a lavoura deve ser Monitorada ou se necessita de Controle Imediato.",
+    "url": "https://mip-cacau.vercel.app/",
+    "icon": "BarChart3",
+    "color": "orange",
+    "size": "regular",
+    "isDefault": false,
+    "category": "Gestão"
+  },
+  {
+    "id": "app-1782310430480",
+    "title": "MIPD Café Conilon ☕",
+    "description": "O MIPD Café Conilon (Labor Rural) é um aplicativo para monitoramento fitossanitário de lavouras de café conilon usando a metodologia MIPD – Manejo Integrado de Pragas e Doenças",
+    "url": "https://mip-cafe.vercel.app/",
+    "icon": "ClipboardList",
+    "color": "orange",
+    "size": "regular",
+    "isDefault": false,
+    "category": "Gestão"
+  }
+]

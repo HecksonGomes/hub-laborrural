@@ -51,31 +51,21 @@ import {
 
 export default function App() {
   // State
-  const [apps, setApps] = useState<AppConfig[]>(() => {
-    try {
-      const hash = window.location.hash;
-      if (hash && hash.startsWith('#config=')) {
-        const base64Data = hash.replace('#config=', '');
-        const decodedStr = decodeURIComponent(atob(base64Data));
-        const parsed = JSON.parse(decodedStr);
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.error('Erro ao decodificar config da URL:', e);
-    }
+  const [apps, setApps] = useState<AppConfig[]>(DEFAULT_APPS);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-    const saved = localStorage.getItem('labor_rural_apps');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Erro ao decodificar apps salvos:', e);
-      }
-    }
-    return DEFAULT_APPS;
-  });
+  // Load from backend on mount
+  useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          setApps(data);
+        }
+      })
+      .catch(err => console.error('Erro ao buscar configuração:', err))
+      .finally(() => setIsLoaded(true));
+  }, []);
 
   const [editMode, setEditMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -98,17 +88,15 @@ export default function App() {
   const [formSize, setFormSize] = useState<AppSize>('regular');
   const [formCategory, setFormCategory] = useState('Outros');
 
-  // Persistence
+  // Persistence to backend
   useEffect(() => {
-    try {
-      localStorage.setItem('labor_rural_apps', JSON.stringify(apps));
-      const jsonStr = JSON.stringify(apps);
-      const base64Data = btoa(encodeURIComponent(jsonStr));
-      window.history.replaceState(null, '', `#config=${base64Data}`);
-    } catch (e) {
-      console.error('Erro ao salvar config na URL:', e);
-    }
-  }, [apps]);
+    if (!isLoaded) return;
+    fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(apps)
+    }).catch(e => console.error('Erro ao salvar config no servidor:', e));
+  }, [apps, isLoaded]);
 
   // Open modal in edit mode
   const handleOpenEditModal = (app: AppConfig) => {
@@ -202,15 +190,6 @@ export default function App() {
     }
   };
 
-  // Share Configuration via URL
-  const handleCopyShareableLink = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Link copiável gerado com sucesso! Envie este link para replicar esta configuração.');
-    }).catch(() => {
-      alert('Erro ao copiar link. Por favor, copie a URL do navegador manualmente.');
-    });
-  };
 
   // Filtered Apps
   const filteredApps = useMemo(() => {
@@ -430,12 +409,6 @@ export default function App() {
                       <Sliders size={14} /> {editMode ? 'Desativar Editor' : 'Gerenciar Aplicativos'}
                     </button>
 
-                    <button 
-                      onClick={() => { handleCopyShareableLink(); setProfileOpen(false); }}
-                      className="w-full text-left px-3.5 py-2 hover:bg-off-white text-gray-700 flex items-center gap-2 cursor-pointer"
-                    >
-                      <ExternalLink size={14} /> Copiar Link Compartilhável
-                    </button>
 
                     <div className="border-t border-gray-100 my-1"></div>
 
@@ -471,13 +444,6 @@ export default function App() {
                 <span className="text-gray-300">Altere os links cadastrados de direcionamento clicando nos ícones de lápis.</span>
               </div>
               <div className="flex gap-2">
-                <button 
-                  onClick={handleCopyShareableLink}
-                  className="bg-blue-500 hover:bg-blue-400 text-white font-semibold font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <ExternalLink size={12} />
-                  Copiar Link Compartilhável
-                </button>
                 <button 
                   onClick={handleResetToDefaults}
                   className="bg-red-600 hover:bg-red-700 text-white font-semibold font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer"
