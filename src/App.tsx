@@ -52,6 +52,20 @@ import {
 export default function App() {
   // State
   const [apps, setApps] = useState<AppConfig[]>(() => {
+    try {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#config=')) {
+        const base64Data = hash.replace('#config=', '');
+        const decodedStr = decodeURIComponent(atob(base64Data));
+        const parsed = JSON.parse(decodedStr);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao decodificar config da URL:', e);
+    }
+
     const saved = localStorage.getItem('labor_rural_apps');
     if (saved) {
       try {
@@ -71,7 +85,6 @@ export default function App() {
   // Modals state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedAppForEdit, setSelectedAppForEdit] = useState<AppConfig | null>(null);
-  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -87,7 +100,14 @@ export default function App() {
 
   // Persistence
   useEffect(() => {
-    localStorage.setItem('labor_rural_apps', JSON.stringify(apps));
+    try {
+      localStorage.setItem('labor_rural_apps', JSON.stringify(apps));
+      const jsonStr = JSON.stringify(apps);
+      const base64Data = btoa(encodeURIComponent(jsonStr));
+      window.history.replaceState(null, '', `#config=${base64Data}`);
+    } catch (e) {
+      console.error('Erro ao salvar config na URL:', e);
+    }
   }, [apps]);
 
   // Open modal in edit mode
@@ -182,37 +202,14 @@ export default function App() {
     }
   };
 
-  // Export config to JSON
-  const handleExportConfig = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apps, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "labor-rural-hub-config.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
-  // Import config from JSON
-  const handleImportConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileReader = new FileReader();
-    if (e.target.files && e.target.files[0]) {
-      fileReader.readAsText(e.target.files[0], "UTF-8");
-      fileReader.onload = (event) => {
-        try {
-          const parsed = JSON.parse(event.target?.result as string);
-          if (Array.isArray(parsed)) {
-            setApps(parsed);
-            setIsBackupModalOpen(false);
-            alert('Configuração importada com sucesso!');
-          } else {
-            alert('Formato de arquivo inválido. Deve ser um array de aplicativos.');
-          }
-        } catch (err) {
-          alert('Erro ao processar o arquivo de configuração.');
-        }
-      };
-    }
+  // Share Configuration via URL
+  const handleCopyShareableLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link copiável gerado com sucesso! Envie este link para replicar esta configuração.');
+    }).catch(() => {
+      alert('Erro ao copiar link. Por favor, copie a URL do navegador manualmente.');
+    });
   };
 
   // Filtered Apps
@@ -434,10 +431,10 @@ export default function App() {
                     </button>
 
                     <button 
-                      onClick={() => { setIsBackupModalOpen(true); setProfileOpen(false); }}
+                      onClick={() => { handleCopyShareableLink(); setProfileOpen(false); }}
                       className="w-full text-left px-3.5 py-2 hover:bg-off-white text-gray-700 flex items-center gap-2 cursor-pointer"
                     >
-                      <Download size={14} /> Exportar / Importar Hub
+                      <ExternalLink size={14} /> Copiar Link Compartilhável
                     </button>
 
                     <div className="border-t border-gray-100 my-1"></div>
@@ -475,10 +472,11 @@ export default function App() {
               </div>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => setIsBackupModalOpen(true)}
-                  className="bg-white/10 hover:bg-white/20 text-white font-semibold font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer"
+                  onClick={handleCopyShareableLink}
+                  className="bg-blue-500 hover:bg-blue-400 text-white font-semibold font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5"
                 >
-                  Backup JSON
+                  <ExternalLink size={12} />
+                  Copiar Link Compartilhável
                 </button>
                 <button 
                   onClick={handleResetToDefaults}
@@ -1068,81 +1066,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* MODAL: BACKUP JSON EXPORT / IMPORT */}
-      <AnimatePresence>
-        {isBackupModalOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-gray-200 shadow-xl rounded-md max-w-md w-full overflow-hidden"
-              id="backup-modal"
-            >
-              <div className="bg-primary text-white p-4 flex justify-between items-center border-b border-gray-800">
-                <div className="flex items-center gap-2">
-                  <Download size={16} className="text-neon-mint" />
-                  <h3 className="font-display font-bold text-sm uppercase tracking-wide">Backup de Configurações</h3>
-                </div>
-                <button 
-                  onClick={() => setIsBackupModalOpen(false)} 
-                  className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <X size={16} />
-                </button>
-              </div>
 
-              <div className="p-6 space-y-6 text-xs text-gray-600">
-                <p className="leading-relaxed">
-                  Para garantir a segurança dos links de direcionamento e aplicativos customizados adicionados ao seu portal, faça backup exportando a configuração para um arquivo JSON local, ou recupere o layout de outro dispositivo importando um arquivo JSON existente.
-                </p>
-
-                {/* Option 1: Export */}
-                <div className="bg-off-white border border-gray-200 rounded p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <div className="text-left">
-                    <h4 className="font-bold text-primary">Exportar Hub Atual</h4>
-                    <p className="text-[10px] text-gray-400 font-sans mt-0.5">Gera o download de um arquivo .json</p>
-                  </div>
-                  <button
-                    onClick={handleExportConfig}
-                    className="bg-deep-forest hover:bg-primary text-white font-mono text-[10px] font-bold uppercase tracking-wider py-2 px-3.5 rounded transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Download size={12} /> Exportar JSON
-                  </button>
-                </div>
-
-                {/* Option 2: Import */}
-                <div className="bg-off-white border border-gray-200 rounded p-4 flex flex-col justify-start gap-2">
-                  <div className="text-left w-full">
-                    <h4 className="font-bold text-primary">Importar Arquivo de Backup</h4>
-                    <p className="text-[10px] text-gray-400 font-sans mt-0.5">Substituirá as configurações atuais</p>
-                  </div>
-                  <div className="relative mt-2 border border-dashed border-gray-300 rounded bg-white hover:bg-gray-50 transition-all p-3 text-center cursor-pointer flex flex-col items-center justify-center">
-                    <Upload size={18} className="text-secondary mb-1.5" />
-                    <span className="text-[10px] font-medium text-gray-600">Selecione o arquivo .json de backup</span>
-                    <input 
-                      type="file" 
-                      accept=".json"
-                      onChange={handleImportConfig}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* Actions Footer */}
-                <div className="pt-2 border-t border-gray-100 flex justify-end">
-                  <button
-                    onClick={() => setIsBackupModalOpen(false)}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-mono text-[11px] uppercase tracking-wider px-6 py-2.5 rounded transition-colors cursor-pointer"
-                  >
-                    Fechar Janela
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
     </div>
   );
